@@ -1,3 +1,7 @@
 """FreeNode - Universal Platform Bypass Framework"""
-__version__ = "1.0.0"
+from .version import VERSION, NAME, BUILD
+
+__version__ = VERSION
+__name__ = NAME
+__build__ = BUILD
 __author__ = "macmam1"

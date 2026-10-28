@@ -63,6 +63,21 @@ class Orchestrator:
                 "freenode ssh install --method dropbear",
                 "freenode ssh key generate --alias freenode-key",
             ]
+            # Import and initialize SSH module
+            try:
+                from src.modules.ssh import setup_ssh_module
+                ssh_module = setup_ssh_module()
+                commands['ssh'].append({
+                    "module_initialized": True,
+                    "sshd_status": ssh_module["sshd"].status(),
+                    "key_manager_initialized": True,
+                    "reverse_tunnel_initialized": True,
+                })
+            except Exception as e:
+                commands['ssh'].append({
+                    "module_initialized": False,
+                    "error": str(e),
+                })
         
         if strategy['terminal_enabled']:
             commands['terminal'] = [
