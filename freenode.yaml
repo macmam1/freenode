@@ -1,0 +1,42 @@
+# FreeNode Configuration
+# Auto-generated or manually edited — controls all layers
+
+platform: "auto"  # auto | render | railway | fly | modal | replit | kaggle | colab | codespaces
+
+modules:
+  ssh: "disabled"
+  tunnel: "disabled"
+  keepalive: "disabled"
+  api: "disabled"
+  terminal: "disabled"
+
+deception:
+  log_scrub: true
+  behavioral_mimicry: true
+  string_encryption: true
+  process_presentation: true
+  network_presentation: true
+  filesystem_presentation: true
+
+obfuscation:
+  quiet_mode: false
+  artifact_strip: true
+  anti_analysis: true
+
+# Platform-specific overrides (optional)
+platforms:
+  render:
+    health_interval: 30
+    metrics_enabled: true
+  railway:
+    health_interval: 15
+    metrics_enabled: false
+  fly:
+    health_interval: 30
+    metrics_enabled: true
+  kaggle:
+    health_interval: 300
+    metrics_enabled: false
+  colab:
+    health_interval: 60
+    metrics_enabled: false
