@@ -1,222 +1,166 @@
-# FreeNode — Universal Platform Bypass Framework
+# FreeNode — Free Compute Platform Bypass
 
-**Version:** 1.0.0 (MVP)  
-**Author:** macmam1  
-**License:** MIT  
-**Status:** Active Development
+**Never let cloud platforms sleep your projects again.**
 
----
-
-## 🎯 What is FreeNode?
-
-FreeNode is a **modular, self-contained framework** that:
-
-1. **Detects** your platform environment (14 dimensions)
-2. **Analyzes** limitations (sleep, session timeout, resource limits, etc.)
-3. **Selects** the best strategy (keepalive, tunnel, persistence, API)
-4. **Activates** modules automatically
-5. **Archives** test results to GitHub
-
-**Supported Platforms:** 80+ (Render, Railway, Colab, Kaggle, Cloudflare Workers, Vercel, and more)
+FreeNode is a complete framework for persistent, free compute on platforms like Render, Railway, Fly.io, Kaggle, Colab, and more — using intelligent deception, obfuscation, and automation.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (One-liner)
 
-### Installation
+```bash
+curl -fsSL https://raw.githubusercontent.com/macmam1/freenode/main/install.sh | bash
+```
 
+Dashboard will start on `http://localhost:8080`
+
+---
+
+## ✨ Features
+
+### 🎯 **Professional Dashboard**
+- 💻 **Full Terminal** — xterm.js PTY over WebSocket
+- 📁 **File Explorer** — Browse, edit, create, delete
+- ⚙️ **Process Monitor** — Real-time CPU/Memory, kill processes
+- 🛠️ **Settings Panel** — Live config management
+
+### 🕵️ **Deception Layer**
+- Masks as legitimate "svc-wrapper" service
+- 56+ sensitive pattern scrubbing (ssh, tunnel, bypass, etc.)
+- Platform-specific behavioral mimicry (health checks, metrics, logs)
+- Process/network/filesystem identity spoofing
+
+### 🔒 **Obfuscation Layer**
+- XOR+Base85 string encryption (no plaintext at rest)
+- Adaptive quiet mode (anti-analysis triggers)
+- Artifact stripping (logs, timestamps, metadata)
+
+### 🎛️ **CLI Control**
+```bash
+freenodectl status           # Show platform + modules
+freenodectl enable ssh       # Enable SSH module
+freenodectl deploy           # Run full deployment
+freenodectl pack             # Encrypt + strip artifacts
+freenodectl quiet            # Toggle quiet mode
+```
+
+---
+
+## 📦 Installation
+
+### Manual Install
 ```bash
 git clone https://github.com/macmam1/freenode.git
 cd freenode
 pip install -r requirements.txt
+python3 -m src.dashboard.app
 ```
 
-### Initialize
-
+### Platform-specific
 ```bash
-python cli.py diagnose    # See your platform profile
-python cli.py init        # Setup for your environment
-python cli.py start       # Activate all modules
-```
+# Render
+curl -fsSL https://raw.githubusercontent.com/macmam1/freenode/main/install.sh | bash -s -- render
 
-### Check Status
+# Railway
+curl -fsSL https://raw.githubusercontent.com/macmam1/freenode/main/install.sh | bash -s -- railway
 
-```bash
-python cli.py status      # View current modules
+# Generic
+curl -fsSL https://raw.githubusercontent.com/macmam1/freenode/main/install.sh | bash
 ```
 
 ---
 
 ## 🏗️ Architecture
 
-### Core (Detection + Strategy)
-
-| Component | Purpose |
-|---|---|
-| **Detector** | Scans 14 environment dimensions (OS, RAM, CPU, platform, etc.) |
-| **Profiler** | Maps limitations to a platform class |
-| **Orchestrator** | Selects modules based on platform class |
-| **Monitor** | Auto-revives failed modules |
-| **Persistence** | Backups state to GitHub/Drive/S3 |
-
-### Modules (Capabilities)
-
-| Module | Purpose | Platforms |
-|---|---|---|
-| **keepalive** | Anti-sleep via HTTP ping / traffic generation | Render, Railway, Glitch, Colab |
-| **terminal** | Web terminal (sshx, ttyd, gotty) | All |
-| **tunnel** | External access (Cloudflare, sshx, frp, ngrok) | All |
-| **ssh** | SSH server + key management | All |
-| **api** | HTTP API for remote execution | All |
-| **resource** | Bypass cgroup/RAM/CPU limits | Container platforms |
-| **privilege** | Privilege escalation attempts | All |
-| **persistence** | Backup to GitHub/Drive/S3 | All |
-
----
-
-## 📊 Platform Coverage
-
-### Containerized (Sleep-Limited)
-- Render Free (15 min sleep)
-- Railway Starter ($5 credit)
-- Fly.io Free (256MB RAM)
-- Glitch (5 min idle)
-- Koyeb (no time limit)
-- SnapDeploy (15 min sleep)
-- Replit (Core $25/mo)
-- And 20+ more...
-
-### Notebook / GPU
-- Google Colab (12h session)
-- Kaggle Notebooks (30h/week)
-- Molab.marimo.io
-- Deepnote, Datalore
-- Paperspace Gradient
-- And 5+ more...
-
-### Serverless / Edge
-- Vercel (15s timeout)
-- Netlify (15s timeout)
-- Cloudflare Workers (always-on)
-- Firebase, Supabase, Deno Deploy
-- And 5+ more...
-
-### Real VMs / SaaS
-- Oracle Cloud Free (always-on)
-- Google Cloud, AWS, Azure
-- Belmo, Stormkit, Zeabur
-- And 40+ more...
-
----
-
-## 🧪 Testing & Results
-
-Every platform test is automatically:
-1. ✅ Executed with strategy validation
-2. 📝 Documented in `docs/test-registry/`
-3. 🏷️ Tagged in Git for retrieval
-4. 📦 Archived permanently (never deleted)
-
-### Test Status
-
-| Platform | Status | Result | Date |
-|---|---|---|---|
-| Render | ⏳ Pending | — | — |
-| Railway | ⏳ Pending | — | — |
-| Colab | ⏳ Pending | — | — |
-| Kaggle | ⏳ Pending | — | — |
-| Cloudflare | ⏳ Pending | — | — |
-
-*(See `docs/test-registry/` for detailed results)*
-
----
-
-## 📖 Documentation
-
-- **Architecture:** See `docs/ANALYSIS_PART1.md`, `docs/ANALYSIS_PART2.md`, `docs/ANALYSIS_PART3.md`
-- **Usage Guide:** Run `python cli.py --help`
-- **Test Results:** Check `docs/test-registry/`
-
----
-
-## 🛠️ Development
-
-### Run Tests
-
-```bash
-pytest tests/
+```
+FreeNode v0.4.0
+├── Core               Platform detection + orchestration
+├── Deception          Identity masking (6 modules, 8 platforms)
+├── Obfuscation        String encryption + anti-analysis
+├── Dashboard          Professional UI + Terminal + API
+└── Modules            SSH, Tunnel, Keepalive, API, Terminal
 ```
 
-### Format Code
+---
 
-```bash
-black src/
-flake8 src/
+## 🎨 Dashboard Preview
+
+- **Overview**: System stats + quick actions
+- **Terminal**: Full shell access (xterm.js)
+- **Files**: Project file management
+- **Processes**: Monitor + kill capability
+- **Settings**: Live configuration
+
+Access: `http://localhost:8080`
+
+---
+
+## 🔧 Configuration
+
+Edit `freenode.yaml`:
+
+```yaml
+platform: "auto"  # auto | render | railway | fly | kaggle | colab
+dashboard_port: 8080
+
+modules:
+  ssh: "disabled"
+  tunnel: "disabled"
+  keepalive: "enabled"
+  api: "enabled"
+
+deception:
+  log_scrub: true
+  behavioral_mimicry: true
+  string_encryption: true
+
+obfuscation:
+  quiet_mode: false
+  artifact_strip: true
 ```
 
-### Add New Platform
+---
 
-1. Add platform detection logic to `src/core/detector.py`
-2. Create strategy in `src/core/profiler.py`
-3. Test and document in `docs/test-registry/`
+## 🛡️ Security
+
+- **No credentials stored** — token-based auth only
+- **Local root directory** — file access limited to project
+- **Process isolation** — each deployment sandboxed
+- **Obfuscated artifacts** — no plaintext identifiers
 
 ---
 
-## 📋 Features (MVP)
+## 📚 Documentation
 
-- ✅ 14-dimension environment detection
-- ✅ 80+ platform support mapping
-- ✅ Modular architecture (pick what you need)
-- ✅ Auto-strategy selection
-- ✅ Persistent state backup
-- ✅ CLI interface
-- ✅ HTTP API
-- ⏳ Full tunnel chain (Cloudflare → sshx → frp → ngrok)
-- ⏳ Session keepalive (5 strategies)
-- ⏳ Web terminal integration
-- ⏳ Resource limit bypass
-
----
-
-## 🔒 Security Notes
-
-- FreeNode does **not** expose secrets in logs
-- All platform tokens are masked
-- State is backed up encrypted (when available)
-- No telemetry or external reporting
+- [Installation Guide](docs/INSTALL.md) *(coming soon)*
+- [Platform Support](docs/PLATFORMS.md) *(coming soon)*
+- [API Reference](docs/API.md) *(coming soon)*
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! See `CONTRIBUTING.md` for guidelines.
+This is a personal research project. Contributions welcome via issues/PRs.
 
 ---
 
-## 📞 Support
+## ⚖️ Legal
 
-- Issues: [GitHub Issues](https://github.com/macmam1/freenode/issues)
-- Discussions: [GitHub Discussions](https://github.com/macmam1/freenode/discussions)
-
----
-
-## 📜 License
-
-MIT License — See `LICENSE` file for details.
+FreeNode is for **educational and personal use** on platforms you have legitimate access to. Respect platform ToS. The authors are not responsible for misuse.
 
 ---
 
-## 🎉 Acknowledgments
+## 📊 Status
 
-Built on research from 50+ open-source projects and 12 internal repositories. Special thanks to the communities behind:
-- Cloudflare Tunnel
-- sshx.io
-- frp
-- Proot
-- And many others
+| Component | Version | Status |
+|-----------|---------|--------|
+| Core | v0.0.2 | ✅ Stable |
+| Deception | v0.1.0 | ✅ Stable |
+| Obfuscation | v0.2.0 | ✅ Stable |
+| Integration | v0.3.0 | ✅ Stable |
+| Dashboard | v0.4.0 | ✅ Stable |
 
 ---
 
-**Status:** 🚀 **Active Development** — MVP phase (v1.0.0)  
-**Last Updated:** 2026-10-28  
-**Next Milestone:** Full module implementation + platform testing
+**Built with ❤️ for free compute enthusiasts**
+
