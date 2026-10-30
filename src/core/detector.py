@@ -34,8 +34,18 @@ class Detector:
         self.results['is_kaggle'] = 'KAGGLE_KERNEL_RUN_TYPE' in os.environ
         self.results['is_render'] = 'RENDER' in os.environ
         self.results['is_railway'] = 'RAILWAY_STATIC_URL' in os.environ
+        self.results['is_cocalc'] = self._detect_cocalc()
         
         return self.results
+
+    def _detect_cocalc(self):
+        """Detect CoCalc environment (project container)"""
+        indicators = [
+            os.path.exists('/opt/cocalc'),
+            os.path.exists('/opt/cocalc/project-bundle'),
+            os.path.exists('/home/user/.local/share/cocalc'),
+        ]
+        return sum(indicators) >= 2
 
     def get_public_ip(self):
         try:
